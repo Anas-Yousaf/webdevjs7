@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOM in JavaScript - Interactive Lecture</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slideshow-container {
+            max-width: 1200px;
+            width: 95%;
+            position: relative;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .slide {
+            display: none;
+            padding: 60px;
+            min-height: 700px;
+            animation: slideIn 0.8s ease-out;
+            position: relative;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .slide h1 {
+            font-size: 3em;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+            animation: fadeInUp 1s ease-out 0.2s both;
+            background: linear-gradient(45deg, #3498db, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .slide h2 {
+            font-size: 2.5em;
+            color: #34495e;
+            margin-bottom: 25px;
+            animation: fadeInUp 1s ease-out 0.4s both;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .slide h3 {
+            font-size: 1.8em;
+            color: #2980b9;
+            margin: 25px 0 15px 0;
+            animation: fadeInUp 1s ease-out 0.6s both;
+        }
+
+        .slide p, .slide li {
+            font-size: 1.2em;
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 15px;
+            animation: fadeInUp 1s ease-out 0.8s both;
+        }
+
+        .slide ul {
+            margin-left: 30px;
+            margin-bottom: 25px;
+        }
+
+        .slide li {
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .slide li::before {
+            content: "→";
+            color: #3498db;
+            font-weight: bold;
+            position: absolute;
+            left: -25px;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 25px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            animation: fadeInUp 1s ease-out 1s both;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .code-block::before {
+            content: "JavaScript";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            background: #3498db;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .demo-area {
+            background: #ecf0f1;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 25px 0;
+            text-align: center;
+            animation: fadeInUp 1s ease-out 1.2s both;
+        }
+
+        .demo-button {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .demo-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+            animation: bounce 0.5s ease;
+        }
+
+        .question-box {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            animation: fadeInUp 1s ease-out 1.4s both;
+            border-left: 5px solid #e74c3c;
+        }
+
+        .question-box h3 {
+            color: #c0392b;
+            margin-bottom: 15px;
+            animation: none;
+        }
+
+        .navigation {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .nav-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .slide-counter {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .tree-visualization {
+            background: white;
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: monospace;
+            animation: fadeInUp 1s ease-out 1s both;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .interactive-demo {
+            border: 2px dashed #3498db;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .result-display {
+            background: #2ecc71;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3498db, #9b59b6);
+            transition: width 0.3s ease;
+        }
+
+        .styled {
+            color: red !important;
+            font-size: 16px !important;
+            font-weight: bold !important;
+        }
+
+        .card {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px;
+            display: inline-block;
+            vertical-align: top;
+            width: 200px;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .active-toggle {
+            background: linear-gradient(45deg, #e74c3c, #c0392b) !important;
+            transform: scale(1.1) !important;
+        }
+
+        @media (max-width: 768px) {
+            .slide {
+                padding: 30px 20px;
+                min-height: 600px;
+            }
+            
+            .slide h1 {
+                font-size: 2.2em;
+            }
+            
+            .slide h2 {
+                font-size: 1.8em;
+            }
+            
+            .slide p, .slide li {
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="slideshow-container">
+        <div class="slide-counter">
+            <span id="currentSlide">1</span> / <span id="totalSlides">20</span>
+        </div>
+        
+        <div class="progress-bar" id="progressBar"></div>
+
+        <!-- Slide 1: Title -->
+        <div class="slide active">
+            <h1>🌐 DOM in JavaScript</h1>
+            <div style="text-align: center; margin: 50px 0;">
+                <h2 style="animation: fadeInUp 1s ease-out 0.6s both; border: none;">Complete Understanding in One Hour</h2>
+                <p style="font-size: 1.5em; color: #7f8c8d; animation: fadeInUp 1s ease-out 0.8s both;">
+                    Master the Document Object Model and bring your web pages to life!
+                </p>
+            </div>
+            
+            <div class="question-box">
+                <h3>🤔 Pre-Lecture Question</h3>
+                <p>What do you think DOM stands for? Have you ever wondered how JavaScript can change what you see on a webpage?</p>
+            </div>
+        </div>
+
+        <!-- Slide 2: What is DOM? -->
+        <div class="slide">
+            <h2>What is the DOM?</h2>
+            <p>The <span class="highlight">Document Object Model (DOM)</span> is a programming interface that represents HTML documents as a tree of objects.</p>
+            
+            <h3>Key Concepts:</h3>
+            <ul>
+                <li>The DOM represents your HTML as a <strong>tree structure</strong></li>
+                <li>Every HTML element becomes an <strong>object</strong> you can manipulate</li>
+                <li>JavaScript can <strong>read, modify, add, and delete</strong> HTML elements</li>
+                <li>Changes happen <strong>dynamically</strong> without page reload</li>
+            </ul>
+
+            <div class="tree-visualization">
+                Document<br>
+                └── html<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;├── head<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── title<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;└── body<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── h1<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── p
+            </div>
+
+            <div class="question-box">
+                <h3>💭 Think About It</h3>
+                <p>If HTML is like a blueprint of a house, what would the DOM be?</p>
+            </div>
+        </div>
+
+        <!-- Slide 3: DOM Tree Structure -->
+        <div class="slide">
+            <h2>Understanding the DOM Tree</h2>
+            
+            <div class="code-block">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;title&gt;My Page&lt;/title&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;h1 id="title"&gt;Welcome&lt;/h1&gt;
+        &lt;p class="intro"&gt;Hello World!&lt;/p&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+            </div>
+
+            <h3>This HTML creates a tree where:</h3>
+            <ul>
+                <li>Each HTML tag becomes a <strong>node</strong></li>
+                <li>Text content becomes <strong>text nodes</strong></li>
+                <li>Attributes become <strong>properties</strong></li>
+                <li>Parent-child relationships are preserved</li>
+            </ul>
+
+            <div class="demo-area">
+                <p>Every element has relationships:</p>
+                <p><strong>Parent</strong> → <strong>Child</strong> → <strong>Sibling</strong></p>
+            </div>
+        </div>
+
+        <!-- Slide 4: Accessing DOM Elements -->
+        <div class="slide">
+            <h2>Accessing DOM Elements</h2>
+            
+            <h3>Primary Methods:</h3>
+            
+            <div class="code-block">
+// By ID (returns single element)
+let title = document.getElementById('title');
+
+// By Class Name (returns collection)
+let intros = document.getElementsByClassName('intro');
+
+// By Tag Name (returns collection)
+let paragraphs = document.getElementsByTagName('p');
+
+// Modern selectors (CSS-style)
+let element = document.querySelector('#title');
+let elements = document.querySelectorAll('.intro');
+            </div>
+
+            <div class="interactive-demo">
+                <h3>Try It Live!</h3>
+                <p id="demo-text">I'm a paragraph with ID 'demo-text'</p>
+                <button class="demo-button" onclick="demonstrateAccess()">Access This Element</button>
+                <div class="result-display" id="access-result">Click the button to see the result!</div>
+            </div>
+
+            <div class="question-box">
+                <h3>🎯 Quick Challenge</h3>
+                <p>Which method would you use to find ALL buttons on a page? Why?</p>
+            </div>
+        </div>
+
+        <!-- Slide 5: Reading Element Properties -->
+        <div class="slide">
+            <h2>Reading Element Properties</h2>
+            
+            <div class="code-block">
+let element = document.getElementById('myElement');
+
+// Get text content
+console.log(element.textContent);
+console.log(element.innerHTML);
+
+// Get attributes
+console.log(element.id);
+console.log(element.className);
+console.log(element.getAttribute('data-value'));
+
+// Get styles
+console.log(element.style.color);
+console.log(getComputedStyle(element).fontSize);
+            </div>
+
+            <h3>Key Differences:</h3>
+            <ul>
+                <li><strong>textContent</strong> - Gets only text, ignores HTML</li>
+                <li><strong>innerHTML</strong> - Gets HTML content inside element</li>
+                <li><strong>getAttribute()</strong> - Gets custom attributes</li>
+                <li><strong>style</strong> - Gets inline styles only</li>
+            </ul>
+
+            <div class="interactive-demo">
+                <p id="read-demo" style="color: blue; font-weight: bold;" data-info="secret">I have some properties!</p>
+                <button class="demo-button" onclick="readProperties()">Read My Properties</button>
+                <div class="result-display" id="read-result">Properties will appear here...</div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Modifying Elements -->
+        <div class="slide">
+            <h2>Modifying DOM Elements</h2>
+            
+            <div class="code-block">
+let element = document.getElementById('myElement');
+
+// Change text content
+element.textContent = 'New text content';
+element.innerHTML = '&lt;strong&gt;Bold text&lt;/strong&gt;';
+
+// Modify attributes
+element.id = 'newId';
+element.className = 'new-class';
+element.setAttribute('data-value', '123');
+
+// Change styles
+element.style.color = 'red';
+element.style.fontSize = '20px';
+element.style.backgroundColor = 'yellow';
+            </div>
+
+            <div class="interactive-demo">
+                <p id="modify-demo">I can be modified!</p>
+                <button class="demo-button" onclick="changeText()">Change Text</button>
+                <button class="demo-button" onclick="changeStyle()">Change Style</button>
+                <button class="demo-button" onclick="resetElement()">Reset</button>
+            </div>
+
+            <div class="question-box">
+                <h3>⚠️ Safety Question</h3>
+                <p>What's the difference between textContent and innerHTML? When might innerHTML be dangerous?</p>
+            </div>
+        </div>
+
+        <!-- Slide 7: Creating New Elements -->
+        <div class="slide">
+            <h2>Creating New Elements</h2>
+            
+            <div class="code-block">
+// Create new element
+let newDiv = document.createElement('div');
+let newText = document.createTextNode('Hello World');
+
+// Set properties
+newDiv.textContent = 'I am a new div!';
+newDiv.className = 'dynamic-element';
+newDiv.style.padding = '20px';
+newDiv.style.backgroundColor = '#f0f0f0';
+
+// Add to document
+document.body.appendChild(newDiv);
+
+// Or insert at specific position
+let parent = document.getElementById('container');
+parent.insertBefore(newDiv, parent.firstChild);
+            </div>
+
+            <div class="interactive-demo">
+                <div id="creation-container" style="border: 2px solid #ddd; padding: 20px; min-height: 100px;">
+                    <p>New elements will appear here:</p>
+                </div>
+                <button class="demo-button" onclick="createElement()">Create Element</button>
+                <button class="demo-button" onclick="clearContainer()">Clear All</button>
+            </div>
+
+            <h3>Key Methods:</h3>
+            <ul>
+                <li><strong>createElement()</strong> - Creates new element</li>
+                <li><strong>appendChild()</strong> - Adds to end</li>
+                <li><strong>insertBefore()</strong> - Inserts at position</li>
+                <li><strong>removeChild()</strong> - Removes element</li>
+            </ul>
+        </div>
+
+        <!-- Slide 8: Event Handling -->
+        <div class="slide">
+            <h2>DOM Events</h2>
+            
+            <div class="code-block">
+// Method 1: Direct assignment
+button.onclick = function() {
+    alert('Button clicked!');
+};
+
+// Method 2: addEventListener (preferred)
+button.addEventListener('click', function() {
+    console.log('Button was clicked!');
+});
+
+// Method 3: With named function
+function handleClick(event) {
+    console.log('Event type:', event.type);
+    console.log('Target:', event.target);
+}
+button.addEventListener('click', handleClick);
+            </div>
+
+            <h3>Common Events:</h3>
+            <ul>
+                <li><strong>click</strong> - Mouse click</li>
+                <li><strong>mouseover/mouseout</strong> - Mouse hover</li>
+                <li><strong>keydown/keyup</strong> - Keyboard events</li>
+                <li><strong>load</strong> - Page/image loaded</li>
+                <li><strong>submit</strong> - Form submission</li>
+            </ul>
+
+            <div class="interactive-demo">
+                <button id="event-demo" class="demo-button">Hover and Click Me!</button>
+                <div class="result-display" id="event-result">Event info will appear here...</div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Form Handling -->
+        <div class="slide">
+            <h2>Working with Forms</h2>
+            
+            <div class="code-block">
+// Get form and input values
+let form = document.getElementById('myForm');
+let nameInput = document.getElementById('name');
+
+// Handle form submission
+form.addEventListener('submit', function(event) {
+    event.preventDefault(); // Stop default submission
+    
+    let name = nameInput.value;
+    if (name.trim() === '') {
+        alert('Please enter your name!');
+        return;
+    }
+    
+    console.log('Name entered:', name);
+});
+            </div>
+
+            <div class="interactive-demo">
+                <form id="demo-form" style="text-align: left;">
+                    <label for="demo-name">Your Name:</label><br>
+                    <input type="text" id="demo-name" style="padding: 10px; margin: 10px 0; width: 200px;"><br>
+                    <button type="submit" class="demo-button">Submit Form</button>
+                </form>
+                <div class="result-display" id="form-result">Form result will appear here...</div>
+            </div>
+
+            <div class="question-box">
+                <h3>🔍 Important Concept</h3>
+                <p>Why do we use event.preventDefault()? What happens if we don't?</p>
+            </div>
+        </div>
+
+        <!-- Slide 10: DOM Traversal -->
+        <div class="slide">
+            <h2>Navigating the DOM Tree</h2>
+            
+            <div class="code-block">
+let element = document.getElementById('myElement');
+
+// Parent relationships
+console.log(element.parentNode);
+console.log(element.parentElement);
+
+// Child relationships
+console.log(element.children);          // HTML elements only
+console.log(element.childNodes);        // All nodes (including text)
+console.log(element.firstElementChild);
+console.log(element.lastElementChild);
+
+// Sibling relationships
+console.log(element.nextElementSibling);
+console.log(element.previousElementSibling);
+            </div>
+
+            <div class="interactive-demo">
+                <div id="traversal-demo">
+                    <h4>Parent Element</h4>
+                    <p id="target-element">I'm the target element</p>
+                    <p>I'm a sibling</p>
+                    <span>I'm another sibling</span>
+                </div>
+                <button class="demo-button" onclick="demonstrateTraversal()">Show Relationships</button>
+                <div class="result-display" id="traversal-result">Relationships will appear here...</div>
+            </div>
+
+            <h3>Pro Tip:</h3>
+            <p>Use <span class="highlight">Element</span> properties (like nextElementSibling) to avoid text nodes!</p>
+        </div>
+
+        <!-- Slide 11: Advanced Selectors -->
+        <div class="slide">
+            <h2>Advanced CSS Selectors in JavaScript</h2>
+            
+            <div class="code-block">
+// Complex selectors with querySelector
+let element = document.querySelector('div.container > p:first-child');
+let buttons = document.querySelectorAll('button[data-action="save"]');
+let evenItems = document.querySelectorAll('li:nth-child(even)');
+
+// Attribute selectors
+let requiredInputs = document.querySelectorAll('input[required]');
+let emailInputs = document.querySelectorAll('input[type="email"]');
+
+// Pseudo-selectors
+let firstParagraph = document.querySelector('p:first-of-type');
+let lastDiv = document.querySelector('div:last-child');
+            </div>
+
+            <h3>Powerful Selector Examples:</h3>
+            <ul>
+                <li><strong>#id .class</strong> - Descendant selector</li>
+                <li><strong>element > child</strong> - Direct child</li>
+                <li><strong>[attribute=value]</strong> - Attribute selector</li>
+                <li><strong>:nth-child(n)</strong> - Position-based</li>
+                <li><strong>:not(selector)</strong> - Exclusion selector</li>
+            </ul>
+
+            <div class="question-box">
+                <h3>🧠 Challenge</h3>
+                <p>How would you select all paragraphs that are NOT inside a div with class 'sidebar'?</p>
+            </div>
+        </div>
+
+        <!-- Slide 12: Style Manipulation -->
+        <div class="slide">
+            <h2>Working with CSS Classes and Styles</h2>
+            
+            <div class="code-block">
+let element = document.getElementById('myElement');
+
+// Working with classes
+element.classList.add('new-class');
+element.classList.remove('old-class');
+element.classList.toggle('active');
+element.classList.contains('hidden'); // returns boolean
+
+// Direct style manipulation
+element.style.cssText = 'color: red; font-size: 20px;';
+element.style.setProperty('--custom-property', 'value');
+
+// Getting computed styles
+let styles = getComputedStyle(element);
+console.log(styles.color);
+console.log(styles.getPropertyValue('font-size'));
+            </div>
+
+            <div class="interactive-demo">
+                <div id="style-demo" style="padding: 20px; border: 2px solid #ddd; transition: all 0.3s ease;">
+                    I can change my appearance!
+                </div>
+                <button class="demo-button" onclick="toggleClass()">Toggle Class</button>
+                <button class="demo-button" onclick="changeStyles()">Change Styles</button>
+                <button class="demo-button" onclick="resetStyles()">Reset</button>
+            </div>
+
+            <div class="question-box">
+                <h3>💡 Best Practice</h3>
+                <p>When should you use classList.toggle() vs classList.add()/remove()?</p>
+            </div>
+        </div>
+
+        <!-- Slide 13: Dynamic Content -->
+        <div class="slide">
+            <h2>Creating Dynamic Content</h2>
+            
+            <div class="code-block">
+// Building complex structures
+function createCard(title, content) {
+    let card = document.createElement('div');
+    card.className = 'card';
+    
+    let cardTitle = document.createElement('h3');
+    cardTitle.textContent = title;
+    
+    let cardContent = document.createElement('p');
+    cardContent.textContent = content;
+    
+    let cardButton = document.createElement('button');
+    cardButton.textContent = 'Click me';
+    cardButton.addEventListener('click', function() {
+        alert('Card clicked: ' + title);
+    });
+    
+    card.appendChild(cardTitle);
+    card.appendChild(cardContent);
+    card.appendChild(cardButton);
+    
+    return card;
+}
+            </div>
+
+            <div class="interactive-demo">
+                <input type="text" id="card-title" placeholder="Enter card title" style="padding: 10px; margin: 5px;">
+                <input type="text" id="card-content" placeholder="Enter card content" style="padding: 10px; margin: 5px;">
+                <button class="demo-button" onclick="createDynamicCard()">Create Card</button>
+                <div id="cards-container" style="margin-top: 20px;"></div>
+            </div>
+
+            <h3>Key Principles:</h3>
+            <ul>
+                <li>Create elements programmatically</li>
+                <li>Set properties and styles</li>
+                <li>Add event listeners</li>
+                <li>Append to document</li>
+            </ul>
+        </div>
+
+        <!-- Slide 14: Event Delegation -->
+        <div class="slide">
+            <h2>Event Delegation</h2>
+            
+            <div class="code-block">
+// Instead of adding listeners to each button...
+// BAD: Memory intensive for many elements
+buttons.forEach(button => {
+    button.addEventListener('click', handleClick);
+});
+
+// GOOD: Use event delegation
+document.addEventListener('click', function(event) {
+    if (event.target.matches('button.dynamic-btn')) {
+        handleClick(event);
+    }
+});
+
+// Event bubbling example
+function handleClick(event) {
+    console.log('Clicked:', event.target.textContent);
+    console.log('Event phase:', event.eventPhase);
+}
+            </div>
+
+            <div class="interactive-demo">
+                <div id="delegation-container" style="border: 2px solid #ddd; padding: 20px;">
+                    <p>Click any button below:</p>
+                    <button class="dynamic-btn demo-button">Button 1</button>
+                    <button class="dynamic-btn demo-button">Button 2</button>
+                </div>
+                <button class="demo-button" onclick="addNewButton()">Add New Button</button>
+                <div class="result-display" id="delegation-result">Click results appear here...</div>
+            </div>
+
+            <div class="question-box">
+                <h3>🎯 Why Use Event Delegation?</h3>
+                <p>Perfect for dynamic content! New elements automatically get event handling.</p>
+            </div>
+        </div>
+
+        <!-- Slide 15: Performance Considerations -->
+        <div class="slide">
+            <h2>DOM Performance Best Practices</h2>
+            
+            <div class="code-block">
+// BAD: Multiple DOM queries
+for (let i = 0; i < 1000; i++) {
+    document.getElementById('container').appendChild(newElement);
+}
+
+// GOOD: Cache DOM references
+let container = document.getElementById('container');
+let fragment = document.createDocumentFragment();
+
+for (let i = 0; i < 1000; i++) {
+    fragment.appendChild(newElement);
+}
+container.appendChild(fragment);
+
+// BAD: Inline styles in loops
+for (let element of elements) {
+    element.style.color = 'red';
+    element.style.fontSize = '16px';
+}
+
+// GOOD: Use CSS classes
+elements.forEach(el => el.classList.add('styled'));
+            </div>
+
+            <h3>Performance Tips:</h3>
+            <ul>
+                <li><strong>Cache DOM references</strong> - Don't query repeatedly</li>
+                <li><strong>Use DocumentFragment</strong> - For multiple insertions</li>
+                <li><strong>Batch DOM changes</strong> - Minimize reflows</li>
+                <li><strong>Use CSS classes</strong> - Instead of inline styles</li>
+                <li><strong>Remove unused event listeners</strong> - Prevent memory leaks</li>
+            </ul>
+
+            <div class="question-box">
+                <h3>⚡ Performance Question</h3>
+                <p>Why is DocumentFragment faster than multiple appendChild() calls?</p>
+            </div>
+        </div>
+
+        <!-- Slide 16: Common DOM Methods Summary -->
+        <div class="slide">
+            <h2>Essential DOM Methods Cheat Sheet</h2>
+            
+            <div class="code-block">
+// SELECTING ELEMENTS
+document.getElementById('id')
+document.querySelector('.class')
+document.querySelectorAll('selector')
+
+// CREATING & MODIFYING
+document.createElement('div')
+element.textContent = 'text'
+element.innerHTML = '&lt;strong&gt;html&lt;/strong&gt;'
+element.setAttribute('attr', 'value')
+element.classList.add('class')
+
+// INSERTING & REMOVING
+parent.appendChild(child)
+parent.insertBefore(new, existing)
+parent.removeChild(child)
+element.remove() // Modern method
+
+// EVENT HANDLING
+element.addEventListener('event', function)
+element.removeEventListener('event', function)
+            </div>
+
+            <div class="interactive-demo">
+                <h3>Method Practice</h3>
+                <div id="practice-area" style="min-height: 100px; border: 2px solid #ddd; padding: 15px;">
+                    <p>Practice area - try the buttons below!</p>
+                </div>
+                <button class="demo-button" onclick="practiceSelect()">Select Elements</button>
+                <button class="demo-button" onclick="practiceModify()">Modify Elements</button>
+                <button class="demo-button" onclick="practiceCreate()">Create Elements</button>
+            </div>
+
+            <div class="question-box">
+                <h3>📝 Quick Review</h3>
+                <p>Can you name three different ways to select elements? Which is most flexible?</p>
+            </div>
+        </div>
+
+        <!-- Slide 17: Real-World Project -->
+        <div class="slide">
+            <h2>Mini Project: Interactive Todo List</h2>
+            
+            <div class="code-block">
+function createTodoApp() {
+    let todos = [];
+    let todoContainer = document.getElementById('todo-container');
+    let todoInput = document.getElementById('todo-input');
+    
+    function addTodo() {
+        let text = todoInput.value.trim();
+        if (text === '') return;
+        
+        let todo = {
+            id: Date.now(),
+            text: text,
+            completed: false
+        };
+        
+        todos.push(todo);
+        renderTodos();
+        todoInput.value = '';
+    }
+    
+    function renderTodos() {
+        todoContainer.innerHTML = '';
+        todos.forEach(todo => {
+            let todoElement = createTodoElement(todo);
+            todoContainer.appendChild(todoElement);
+        });
+    }
+}
+            </div>
+
+            <div class="interactive-demo">
+                <h3>Live Todo App</h3>
+                <div style="text-align: left; max-width: 400px; margin: 0 auto;">
+                    <input type="text" id="todo-input" placeholder="Enter a task..." style="width: 70%; padding: 10px;">
+                    <button class="demo-button" onclick="addTodoItem()" style="width: 25%; padding: 10px;">Add</button>
+                    <ul id="todo-list" style="list-style: none; padding: 0; margin-top: 15px;"></ul>
+                </div>
+            </div>
+
+            <h3>This project combines:</h3>
+            <ul>
+                <li>Element creation and manipulation</li>
+                <li>Event handling</li>
+                <li>Dynamic content updates</li>
+                <li>Form input processing</li>
+            </ul>
+        </div>
+
+        <!-- Slide 18: Common Pitfalls -->
+        <div class="slide">
+            <h2>Common DOM Mistakes to Avoid</h2>
+            
+            <div class="code-block">
+// MISTAKE 1: Not checking if element exists
+let element = document.getElementById('might-not-exist');
+element.textContent = 'Hello'; // ERROR if null!
+
+// SOLUTION: Always check
+if (element) {
+    element.textContent = 'Hello';
+}
+
+// MISTAKE 2: Memory leaks with event listeners
+function badFunction() {
+    let bigData = new Array(1000000);
+    button.addEventListener('click', function() {
+        console.log(bigData.length); // bigData never gets freed!
+    });
+}
+
+// SOLUTION: Remove listeners or avoid closures over large data
+
+// MISTAKE 3: Modifying collections while iterating
+let divs = document.querySelectorAll('div');
+for (let div of divs) {
+    div.remove(); // Modifying collection during iteration!
+}
+            </div>
+
+            <h3>Best Practices:</h3>
+            <ul>
+                <li><strong>Always check for null</strong> - Elements might not exist</li>
+                <li><strong>Clean up event listeners</strong> - Prevent memory leaks</li>
+                <li><strong>Use event delegation</strong> - For dynamic content</li>
+                <li><strong>Cache DOM queries</strong> - Don't query repeatedly</li>
+                <li><strong>Validate user input</strong> - Never trust form data</li>
+            </ul>
+
+            <div class="question-box">
+                <h3>🚨 Debug Challenge</h3>
+                <p>What would happen if you try to addEventListener on a null element?</p>
+            </div>
+        </div>
+
+        <!-- Slide 19: Modern DOM Features -->
+        <div class="slide">
+            <h2>Modern DOM APIs and Features</h2>
+            
+            <div class="code-block">
+// Modern element methods
+element.closest('.parent-class');  // Find closest ancestor
+element.matches('.selector');      // Check if element matches
+element.remove();                  // Remove without parent reference
+
+// Intersection Observer (for scroll animations)
+let observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('animate');
+        }
+    });
+});
+observer.observe(element);
+
+// Mutation Observer (watch for changes)
+let mutationObserver = new MutationObserver((mutations) => {
+    mutations.forEach(mutation => {
+        console.log('DOM changed:', mutation.type);
+    });
+});
+
+// Web Components (custom elements)
+class MyCustomElement extends HTMLElement {
+    connectedCallback() {
+        this.innerHTML = '&lt;p&gt;I am a custom element!&lt;/p&gt;';
+    }
+}
+customElements.define('my-element', MyCustomElement);
+            </div>
+
+            <h3>Modern Features Include:</h3>
+            <ul>
+                <li><strong>Intersection Observer</strong> - Efficient scroll detection</li>
+                <li><strong>Mutation Observer</strong> - Watch DOM changes</li>
+                <li><strong>Web Components</strong> - Create custom HTML elements</li>
+                <li><strong>CSS-in-JS</strong> - Dynamic styling with JavaScript</li>
+                <li><strong>Template elements</strong> - Reusable HTML templates</li>
+            </ul>
+
+            <div class="question-box">
+                <h3>🔮 Future of DOM</h3>
+                <p>How do you think modern frameworks like React relate to direct DOM manipulation?</p>
+            </div>
+        </div>
+
+        <!-- Slide 20: Summary and Next Steps -->
+        <div class="slide">
+            <h1>🎉 Congratulations!</h1>
+            
+            <h2 style="border: none; text-align: center;">You've Mastered the DOM!</h2>
+            
+            <h3>What You've Learned:</h3>
+            <ul>
+                <li>What the DOM is and how it works</li>
+                <li>How to select and manipulate elements</li>
+                <li>Event handling and user interactions</li>
+                <li>Creating dynamic content</li>
+                <li>Performance best practices</li>
+                <li>Common pitfalls and how to avoid them</li>
+            </ul>
+
+            <div class="demo-area">
+                <h3>🚀 Next Steps:</h3>
+                <p><strong>Practice Projects:</strong></p>
+                <p>• Build a calculator • Create an image gallery • Make a quiz app</p>
+                <p><strong>Advanced Topics:</strong></p>
+                <p>• Learn a framework (React, Vue) • Explore Web APIs • Study performance optimization</p>
+            </div>
+
+            <div class="question-box">
+                <h3>🎯 Final Challenge</h3>
+                <p>Can you build a complete interactive webpage using only the DOM methods you learned today? Try it!</p>
+            </div>
+
+            <div style="text-align: center; margin-top: 40px;">
+                <h2 style="color: #27ae60; border: none;">Happy Coding! 🚀</h2>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <button class="nav-button" id="prevBtn" onclick="changeSlide(-1)">← Previous</button>
+            <button class="nav-button" id="nextBtn" onclick="changeSlide(1)">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlideIndex = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        
+        // Update slide counter
+        document.getElementById('totalSlides').textContent = totalSlides;
+        
+        // Initialize slideshow
+        function showSlide(n) {
+            slides[currentSlideIndex].classList.remove('active');
+            currentSlideIndex = (n + slides.length) % slides.length;
+            slides[currentSlideIndex].classList.add('active');
+            
+            // Update slide counter
+            document.getElementById('currentSlide').textContent = currentSlideIndex + 1;
+            
+            // Update progress bar
+            const progress = ((currentSlideIndex + 1) / totalSlides) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            
+            // Update navigation buttons
+            document.getElementById('prevBtn').disabled = currentSlideIndex === 0;
+            document.getElementById('nextBtn').disabled = currentSlideIndex === totalSlides - 1;
+        }
+        
+        function changeSlide(direction) {
+            showSlide(currentSlideIndex + direction);
+        }
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowLeft') changeSlide(-1);
+            if (event.key === 'ArrowRight') changeSlide(1);
+        });
+        
+        // Initialize
+        showSlide(0);
+        
+        // Demo Functions
+        function demonstrateAccess() {
+            const element = document.getElementById('demo-text');
+            const result = document.getElementById('access-result');
+            result.innerHTML = `
+                <strong>Element found!</strong><br>
+                Tag: ${element.tagName}<br>
+                ID: ${element.id}<br>
+                Text: "${element.textContent}"
+            `;
+        }
+        
+        function readProperties() {
+            const element = document.getElementById('read-demo');
+            const result = document.getElementById('read-result');
+            result.innerHTML = `
+                <strong>Properties Read:</strong><br>
+                textContent: "${element.textContent}"<br>
+                Color: ${element.style.color}<br>
+                Data-info: ${element.getAttribute('data-info')}
+            `;
+        }
+        
+        let modifyOriginalText = "I can be modified!";
+        function changeText() {
+            const element = document.getElementById('modify-demo');
+            element.textContent = "I've been changed by JavaScript!";
+        }
+        
+        function changeStyle() {
+            const element = document.getElementById('modify-demo');
+            element.style.color = 'red';
+            element.style.fontSize = '1.5em';
+            element.style.fontWeight = 'bold';
+        }
+        
+        function resetElement() {
+            const element = document.getElementById('modify-demo');
+            element.textContent = modifyOriginalText;
+            element.style.cssText = '';
+        }
+        
+        let elementCounter = 0;
+        function createElement() {
+            const container = document.getElementById('creation-container');
+            elementCounter++;
+            
+            const newElement = document.createElement('div');
+            newElement.textContent = `Dynamic Element #${elementCounter}`;
+            newElement.style.cssText = `
+                background: #3498db;
+                color: white;
+                padding: 10px;
+                margin: 5px;
+                border-radius: 5px;
+                animation: fadeInUp 0.5s ease-out;
+            `;
+            
+            container.appendChild(newElement);
+        }
+        
+        function clearContainer() {
+            const container = document.getElementById('creation-container');
+            container.innerHTML = '<p>New elements will appear here:</p>';
+            elementCounter = 0;
+        }
+        
+        // Event demo setup
+        document.addEventListener('DOMContentLoaded', function() {
+            const eventButton = document.getElementById('event-demo');
+            const eventResult = document.getElementById('event-result');
+            
+            if (eventButton && eventResult) {
+                eventButton.addEventListener('click', function(e) {
+                    eventResult.textContent = `Clicked! Event type: ${e.type}, Target: ${e.target.tagName}`;
+                });
+                
+                eventButton.addEventListener('mouseover', function(e) {
+                    eventResult.textContent = `Mouse over! Event type: ${e.type}`;
+                });
+                
+                eventButton.addEventListener('mouseout', function(e) {
+                    eventResult.textContent = `Mouse out! Event type: ${e.type}`;
+                });
+            }
+        });
+        
+        // Form demo
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('demo-form');
+            const result = document.getElementById('form-result');
+            
+            if (form && result) {
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    const name = document.getElementById('demo-name').value;
+                    
+                    if (name.trim() === '') {
+                        result.style.background = '#e74c3c';
+                        result.textContent = 'Please enter your name!';
+                    } else {
+                        result.style.background = '#2ecc71';
+                        result.textContent = `Hello, ${name}! Form submitted successfully.`;
+                    }
+                });
+            }
+        });
+        
+        function demonstrateTraversal() {
+            const target = document.getElementById('target-element');
+            const result = document.getElementById('traversal-result');
+            
+            result.innerHTML = `
+                <strong>DOM Relationships:</strong><br>
+                Parent: ${target.parentElement.tagName}<br>
+                Next Sibling: ${target.nextElementSibling ? target.nextElementSibling.tagName : 'None'}<br>
+                Previous Sibling: ${target.previousElementSibling ? target.previousElementSibling.tagName : 'None'}
+            `;
+        }
+        
+        function toggleClass() {
+            const element = document.getElementById('style-demo');
+            element.classList.toggle('active-toggle');
+        }
+        
+        function changeStyles() {
+            const element = document.getElementById('style-demo');
+            element.style.cssText = 'padding: 20px; border: 2px solid #e74c3c; background: #fff5f5; color: #c0392b; transition: all 0.3s ease;';
+        }
+        
+        function resetStyles() {
+            const element = document.getElementById('style-demo');
+            element.className = '';
+            element.style.cssText = 'padding: 20px; border: 2px solid #ddd; transition: all 0.3s ease;';
+        }
+        
+        function createDynamicCard() {
+            const title = document.getElementById('card-title').value;
+            const content = document.getElementById('card-content').value;
+            const container = document.getElementById('cards-container');
+            
+            if (title.trim() === '' || content.trim() === '') {
+                alert('Please fill in both fields!');
+                return;
+            }
+            
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            const cardTitle = document.createElement('h4');
+            cardTitle.textContent = title;
+            
+            const cardContent = document.createElement('p');
+            cardContent.textContent = content;
+            
+            const cardButton = document.createElement('button');
+            cardButton.textContent = 'Click me';
+            cardButton.className = 'demo-button';
+            cardButton.style.cssText = 'padding: 8px 16px; font-size: 0.9em;';
+            
+            cardButton.addEventListener('click', function() {
+                alert(`Card clicked: ${title}`);
+            });
+            
+            card.appendChild(cardTitle);
+            card.appendChild(cardContent);
+            card.appendChild(cardButton);
+            
+            container.appendChild(card);
+            
+            // Clear inputs
+            document.getElementById('card-title').value = '';
+            document.getElementById('card-content').value = '';
+        }
+        
+        // Event delegation demo
+        let buttonCounter = 2;
+        function addNewButton() {
+            const container = document.getElementById('delegation-container');
+            buttonCounter++;
+            
+            const newButton = document.createElement('button');
+            newButton.className = 'dynamic-btn demo-button';
+            newButton.textContent = `Button ${buttonCounter}`;
+            
+            container.appendChild(newButton);
+        }
+        
+        // Set up event delegation
+        document.addEventListener('click', function(event) {
+            if (event.target.matches('.dynamic-btn')) {
+                const result = document.getElementById('delegation-result');
+                if (result) {
+                    result.textContent = `Clicked: ${event.target.textContent} (Event Delegation!)`;
+                }
+            }
+        });
+        
+        // Practice functions for slide 16
+        function practiceSelect() {
+            const area = document.getElementById('practice-area');
+            const elements = area.querySelectorAll('p');
+            area.innerHTML = `
+                <p>Practice area - try the buttons below!</p>
+                <p style="color: red;">Found ${elements.length} paragraph(s) using querySelectorAll!</p>
+            `;
+        }
+        
+        function practiceModify() {
+            const area = document.getElementById('practice-area');
+            const p = area.querySelector('p');
+            if (p) {
+                p.style.cssText = 'color: blue; font-weight: bold; font-size: 1.2em;';
+                p.textContent = 'Modified with JavaScript!';
+            }
+        }
+        
+        function practiceCreate() {
+            const area = document.getElementById('practice-area');
+            const newElement = document.createElement('div');
+            newElement.innerHTML = '<strong>Created dynamically!</strong>';
+            newElement.style.cssText = 'background: #2ecc71; color: white; padding: 10px; margin: 10px 0; border-radius: 5px;';
+            area.appendChild(newElement);
+        }
+        
+        // Todo app functions
+        let todoCounter = 0;
+        function addTodoItem() {
+            const input = document.getElementById('todo-input');
+            const list = document.getElementById('todo-list');
+            const text = input.value.trim();
+            
+            if (text === '') {
+                alert('Please enter a task!');
+                return;
+            }
+            
+            todoCounter++;
+            const li = document.createElement('li');
+            li.style.cssText = `
+                background: #f8f9fa;
+                padding: 10px;
+                margin: 5px 0;
+                border-radius: 5px;
+                border-left: 4px solid #3498db;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            `;
+            
+            li.innerHTML = `
+                <span>${text}</span>
+                <button onclick="removeTodo(this)" style="float: right; background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Delete</button>
+            `;
+            
+            li.addEventListener('click', function(e) {
+                if (e.target.tagName !== 'BUTTON') {
+                    li.style.textDecoration = li.style.textDecoration === 'line-through' ? 'none' : 'line-through';
+                    li.style.opacity = li.style.opacity === '0.5' ? '1' : '0.5';
+                }
+            });
+            
+            list.appendChild(li);
+            input.value = '';
+        }
+        
+        function removeTodo(button) {
+            button.parentElement.remove();
+        }
+        
+        // Allow Enter key in todo input
+        document.addEventListener('DOMContentLoaded', function() {
+            const todoInput = document.getElementById('todo-input');
+            if (todoInput) {
+                todoInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        addTodoItem();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
